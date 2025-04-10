@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expense Manager API Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    pre {
+      background-color: #eef;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>💵 Expense Manager: API Interaction Page</h1>
+
+  <!-- Section: Add New User -->
+  <h2>Register a User</h2>
+  <input type="text" id="user_name" placeholder="Full Name">
+  <input type="email" id="user_email" placeholder="Email Address">
+  <button onclick="registerUser()">Submit</button>
+  <pre id="userOutput"></pre>
+
+  <!-- Section: Define Monthly Budget -->
+  <h2>Configure Budget</h2>
+  <input type="number" id="budget_user_id" placeholder="User ID">
+  <input type="text" id="budget_category" placeholder="Category (e.g., Travel)">
+  <input type="text" id="budget_month" placeholder="Month (YYYY-MM)">
+  <input type="number" id="budget_limit" placeholder="Budget Amount">
+  <button onclick="submitBudget()">Save Budget</button>
+  <pre id="budgetOutput"></pre>
+
+  <!-- Section: Expense Entry -->
+  <h2>Record an Expense</h2>
+  <input type="number" id="expense_user_id" placeholder="User ID">
+  <input type="text" id="expense_category" placeholder="Expense Category">
+  <input type="number" id="expense_amount" placeholder="Amount Spent">
+  <button onclick="addExpense()">Submit Expense</button>
+  <pre id="expenseOutput"></pre>
+
+  <!-- Section: Monthly Report -->
+  <h2>Monthly Overview</h2>
+  <input type="number" id="report_user_id" placeholder="User ID">
+  <input type="text" id="report_month" placeholder="Month (YYYY-MM)">
+  <button onclick="fetchReport()">Generate Report</button>
+  <pre id="reportOutput"></pre>
+
+  <!-- Section: Alert Summary -->
+  <h2>Budget Warnings</h2>
+  <input type="number" id="alert_user_id" placeholder="User ID">
+  <input type="text" id="alert_month" placeholder="Month (YYYY-MM)">
+  <button onclick="fetchAlerts()">Show Alerts</button>
+  <pre id="alertOutput"></pre>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:5000";
+
+    function showResult(targetId, data, isError = false) {
+      const element = document.getElementById(targetId);
+      element.innerHTML = `<code class="${isError ? 'error' : 'success'}">${JSON.stringify(data, null, 2)}</code>`;
+    }
+
+    function registerUser() {
+      fetch(`${API_BASE}/user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById("user_name").value,
+          email: document.getElementById("user_email").value
+        })
+      })
+      .then(res => res.json())
+      .then(data => showResult("userOutput", data))
+      .catch(err => showResult("userOutput", err, true));
+    }
+
+    function submitBudget() {
+      fetch(`${API_BASE}/budget`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: parseInt(document.getElementById("budget_user_id").value),
+          category: document.getElementById("budget_category").value,
+          month: document.getElementById("budget_month").value,
+          limit: parseFloat(document.getElementById("budget_limit").value)
+        })
+      })
+      .then(res => res.json())
+      .then(data => showResult("budgetOutput", data))
+      .catch(err => showResult("budgetOutput", err, true));
+    }
+
+    function addExpense() {
+      fetch(`${API_BASE}/expense`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: parseInt(document.getElementById("expense_user_id").value),
+          category: document.getElementById("expense_category").value,
+          amount: parseFloat(document.getElementById("expense_amount").value)
+        })
+      })
+      .then(res => res.json())
+      .then(data => showResult("expenseOutput", data))
+      .catch(err => showResult("expenseOutput", err, true));
+    }
+
+    function fetchReport() {
+      const uid = document.getElementById("report_user_id").value;
+      const month = document.getElementById("report_month").value;
+      fetch(`${API_BASE}/report/${uid}/${month}`)
+        .then(res => res.json())
+        .then(data => showResult("reportOutput", data))
+        .catch(err => showResult("reportOutput", err, true));
+    }
+
+    function fetchAlerts() {
+      const uid = document.getElementById("alert_user_id").value;
+      const month = document.getElementById("alert_month").value;
+      fetch(`${API_BASE}/alerts/${uid}/${month}`)
+        .then(res => res.json())
+        .then(data => showResult("alertOutput", data))
+        .catch(err => showResult("alertOutput", err, true));
+    }
+  </script>
+</body>
+</html>
